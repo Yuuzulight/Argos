@@ -106,7 +106,7 @@ LRESULT LayeredWindow::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
         SetCapture(hwnd);
         return 0;
     case WM_MOUSEMOVE:
-        if (m_dragging) {
+        if (m_dragging && (wParam & MK_LBUTTON)) {
             POINT cursor;
             GetCursorPos(&cursor);
             SetPosition(m_dragStartWindow.x + (cursor.x - m_dragStartCursor.x),
@@ -118,6 +118,15 @@ LRESULT LayeredWindow::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
             m_dragging = false;
             ReleaseCapture();
         }
+        return 0;
+    // Fires whenever this window loses mouse capture for any reason --
+    // including its own ReleaseCapture() call above, but also capture
+    // being stolen by another window, a system dialog/UAC prompt, Alt+Tab,
+    // etc. Without this, a capture loss that isn't this window's own
+    // WM_LBUTTONUP would leave m_dragging stuck true, and the window would
+    // start following the cursor on the next plain hover (no button held).
+    case WM_CAPTURECHANGED:
+        m_dragging = false;
         return 0;
     case WM_KEYDOWN:
         OnKeyDown(wParam);
