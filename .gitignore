@@ -1,0 +1,6 @@
+.worktrees/
+.superpowers/
+/build/
+*.obj
+*.pdb
+*.ilk
