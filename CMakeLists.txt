@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(argos_engine STATIC
     src/engine/D2DContext.cpp
     src/engine/LayeredWindow.cpp
+    src/engine/MonitorUtil.cpp
 )
 target_include_directories(argos_engine PUBLIC src)
 target_compile_definitions(argos_engine PUBLIC UNICODE _UNICODE _WIN32_WINNT=0x0A00 WINVER=0x0A00)
