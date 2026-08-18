@@ -1,45 +1,38 @@
 #include <windows.h>
-#include "engine/D2DContext.h"
+#include "engine/LayeredWindow.h"
 
 using namespace argos;
 
 namespace {
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    if (msg == WM_DESTROY) {
-        PostQuitMessage(0);
-        return 0;
+
+class DemoWidget : public LayeredWindow {
+public:
+    void OnPaint(D2DContext& ctx, int w, int h) override {
+        ctx.FillRoundedRect(D2D1::RectF(0, 0, (float)w, (float)h), 12.0f,
+                             D2D1::ColorF(0.10f, 0.10f, 0.12f, 0.85f));
+        auto textFormat = ctx.CreateTextFormat(L"Segoe UI", 14.0f);
+        const wchar_t* label = IsClickThrough() ? L"Argos (click-through ON)"
+                                                 : L"Argos (drag me / press T)";
+        ctx.DrawText(D2D1::RectF(12, 10, w - 12.0f, 34.0f), label, textFormat.Get(),
+                     D2D1::ColorF(D2D1::ColorF::White));
+        ctx.FillBar(D2D1::RectF(12, 44, w - 12.0f, 60.0f), 0.42f,
+                    D2D1::ColorF(0.30f, 0.65f, 0.95f, 1.0f), D2D1::ColorF(1, 1, 1, 0.15f));
     }
-    return DefWindowProcW(hwnd, msg, wParam, lParam);
-}
-}
 
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow) {
-    WNDCLASSEXW wc{};
-    wc.cbSize = sizeof(wc);
-    wc.lpfnWndProc = WndProc;
-    wc.hInstance = hInstance;
-    wc.lpszClassName = L"ArgosD2DSmokeTest";
-    RegisterClassExW(&wc);
-
-    const int width = 260;
-    const int height = 90;
-    HWND hwnd = CreateWindowExW(WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW,
-                                 wc.lpszClassName, L"Argos D2D Smoke Test", WS_POPUP,
-                                 200, 200, width, height, nullptr, nullptr, hInstance, nullptr);
-
-    D2DContext ctx;
-    if (!ctx.Resize(width, height)) {
-        return 1;
+    void OnKeyDown(WPARAM vk) override {
+        if (vk == 'T') {
+            SetClickThrough(!IsClickThrough());
+            Render();
+        }
     }
-    ShowWindow(hwnd, nCmdShow);
+};
 
-    ctx.BeginDraw();
-    ctx.FillRoundedRect(D2D1::RectF(0, 0, (float)width, (float)height), 12.0f,
-                         D2D1::ColorF(0.10f, 0.10f, 0.12f, 0.85f));
-    auto textFormat = ctx.CreateTextFormat(L"Segoe UI", 20.0f);
-    ctx.DrawText(D2D1::RectF(12, 12, width - 12.0f, height - 12.0f), L"Argos engine online",
-                 textFormat.Get(), D2D1::ColorF(D2D1::ColorF::White));
-    ctx.EndDrawAndPresent(hwnd, 200, 200);
+}
+
+int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR, int nCmdShow) {
+    static DemoWidget widget;
+    widget.Create(L"Argos Engine Demo", 200, 200, 260, 90);
+    widget.Render();
 
     MSG msg;
     while (GetMessageW(&msg, nullptr, 0, 0)) {
