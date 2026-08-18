@@ -82,6 +82,12 @@ void LayeredWindow::SetPosition(int screenX, int screenY) {
     Render();
 }
 
+void LayeredWindow::PlaceOnMonitor(const std::vector<MonitorInfo>& monitors, int monitorIndex,
+                                    int relX, int relY) {
+    POINT p = MonitorRelativeToVirtualDesktop(monitors, monitorIndex, relX, relY);
+    SetPosition(p.x, p.y);
+}
+
 LRESULT CALLBACK LayeredWindow::WndProcStatic(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     LayeredWindow* self = nullptr;
     if (msg == WM_NCCREATE) {

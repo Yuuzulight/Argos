@@ -1,5 +1,6 @@
 #include <windows.h>
 #include "engine/LayeredWindow.h"
+#include "engine/MonitorUtil.h"
 
 using namespace argos;
 
@@ -31,7 +32,9 @@ public:
 
 int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR, int nCmdShow) {
     static DemoWidget widget;
-    widget.Create(L"Argos Engine Demo", 200, 200, 260, 90);
+    auto monitors = EnumerateMonitors();
+    widget.Create(L"Argos Engine Demo", 0, 0, 260, 90);
+    widget.PlaceOnMonitor(monitors, 0, 40, 40);
     widget.Render();
 
     MSG msg;

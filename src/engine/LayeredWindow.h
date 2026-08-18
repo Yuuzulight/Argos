@@ -1,6 +1,7 @@
 #pragma once
 #include <windows.h>
 #include "engine/D2DContext.h"
+#include "engine/MonitorUtil.h"
 
 namespace argos {
 
@@ -32,6 +33,7 @@ public:
     bool IsClickThrough() const { return m_clickThrough; }
 
     void SetPosition(int screenX, int screenY);
+    void PlaceOnMonitor(const std::vector<MonitorInfo>& monitors, int monitorIndex, int relX, int relY);
     int ScreenX() const { return m_screenX; }
     int ScreenY() const { return m_screenY; }
     UINT Dpi() const { return m_dpi; }
