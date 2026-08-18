@@ -38,9 +38,20 @@ public:
     int ScreenY() const { return m_screenY; }
     UINT Dpi() const { return m_dpi; }
 
-    virtual void OnPaint(D2DContext& ctx, int widthPx, int heightPx) {}
+    // dipWidth/dipHeight are device-independent pixels (96ths of a logical
+    // inch), not physical pixels -- Direct2D's own coordinate system once
+    // the render target's DPI is set correctly, so drawing math in
+    // overrides stays proportionally correct across a DPI change without
+    // needing to know the window's actual pixel size.
+    virtual void OnPaint(D2DContext& ctx, float dipWidth, float dipHeight) {}
     virtual void OnDpiChanged(UINT newDpi) {}
     virtual void OnKeyDown(WPARAM vk) {}
+    // Called from WM_DESTROY. The library itself never posts a quit
+    // message here (one widget closing shouldn't quit an app hosting
+    // several), so a host that wants the message loop to exit when its
+    // last/only window closes should override this and call
+    // PostQuitMessage() itself.
+    virtual void OnDestroy() {}
 
     // Public because RegisterClassOnce() (a free function outside the class,
     // in LayeredWindow.cpp) must pass it as the WNDCLASSEXW::lpfnWndProc

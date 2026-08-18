@@ -22,12 +22,19 @@ Requires Visual Studio 2022 Build Tools (or Visual Studio 2022) with the
 ships its own, under
 `Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin`).
 
-From a "Developer Command Prompt for VS 2022":
+From a "Developer Command Prompt for VS 2022" (this also puts VS's own
+bundled Ninja on `PATH`, so `-G Ninja` below works without installing
+Ninja separately):
 
 ```
-cmake -S . -B build -G Ninja
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
+Ninja is a single-config generator, so `CMAKE_BUILD_TYPE` has to be
+chosen at configure time -- use `Debug` in place of `Release` above for a
+debug build.
+
 This produces `build\argos_engine_demo.exe`, a proving executable for the
-rendering engine.
+rendering engine. Close it like any normal window (Alt+F4, or its
+taskbar entry) -- it exits cleanly.

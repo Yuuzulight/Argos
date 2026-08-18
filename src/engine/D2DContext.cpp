@@ -3,9 +3,13 @@
 using namespace argos;
 
 D2DContext::D2DContext() {
-    D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, m_d2dFactory.GetAddressOf());
-    DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
-                         reinterpret_cast<IUnknown**>(m_dwriteFactory.GetAddressOf()));
+    if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, m_d2dFactory.GetAddressOf()))) {
+        m_d2dFactory.Reset();
+    }
+    if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
+                                    reinterpret_cast<IUnknown**>(m_dwriteFactory.GetAddressOf())))) {
+        m_dwriteFactory.Reset();
+    }
 }
 
 D2DContext::~D2DContext() {
@@ -27,11 +31,27 @@ void D2DContext::ReleaseDib() {
     }
 }
 
-bool D2DContext::Resize(int widthPx, int heightPx) {
+bool D2DContext::Resize(int widthPx, int heightPx, UINT dpi) {
+    // Downgrade to not-ready up front. Every early-return failure path
+    // below leaves this false, so a failed Resize() can never leave
+    // IsReady() reporting true over a render target bound to resources
+    // that this call may have already torn down.
+    m_ready = false;
+
+    if (!m_d2dFactory || !m_dwriteFactory) {
+        // Constructor failed to create the factories; nothing usable to
+        // resize/bind.
+        return false;
+    }
     if (widthPx <= 0 || heightPx <= 0) {
         return false;
     }
     if (widthPx == m_widthPx && heightPx == m_heightPx && m_dcRenderTarget) {
+        // Pixel size unchanged, but DPI may not be -- keep the render
+        // target's DPI in sync regardless.
+        m_dcRenderTarget->SetDpi(static_cast<float>(dpi), static_cast<float>(dpi));
+        m_dpi = dpi;
+        m_ready = true;
         return true;
     }
 
@@ -71,13 +91,16 @@ bool D2DContext::Resize(int widthPx, int heightPx) {
         return false;
     }
 
+    m_dcRenderTarget->SetDpi(static_cast<float>(dpi), static_cast<float>(dpi));
+    m_dpi = dpi;
     m_widthPx = widthPx;
     m_heightPx = heightPx;
+    m_ready = true;
     return true;
 }
 
 void D2DContext::BeginDraw() {
-    if (!m_dcRenderTarget) {
+    if (!IsReady()) {
         return;
     }
     m_dcRenderTarget->BeginDraw();
@@ -85,7 +108,7 @@ void D2DContext::BeginDraw() {
 }
 
 void D2DContext::EndDrawAndPresent(HWND hwnd, int screenX, int screenY) {
-    if (!m_dcRenderTarget) {
+    if (!IsReady()) {
         return;
     }
     if (FAILED(m_dcRenderTarget->EndDraw())) {
@@ -128,8 +151,13 @@ void D2DContext::DrawText(const D2D1_RECT_F& layoutRect, const wchar_t* text, ID
 
 ComPtr<IDWriteTextFormat> D2DContext::CreateTextFormat(const wchar_t* fontFamily, float sizePt) {
     ComPtr<IDWriteTextFormat> format;
-    m_dwriteFactory->CreateTextFormat(fontFamily, nullptr, DWRITE_FONT_WEIGHT_NORMAL,
-                                       DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
-                                       sizePt, L"en-us", format.GetAddressOf());
+    if (!m_dwriteFactory) {
+        return format;
+    }
+    if (FAILED(m_dwriteFactory->CreateTextFormat(fontFamily, nullptr, DWRITE_FONT_WEIGHT_NORMAL,
+                                                  DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL,
+                                                  sizePt, L"en-us", format.GetAddressOf()))) {
+        format.Reset();
+    }
     return format;
 }

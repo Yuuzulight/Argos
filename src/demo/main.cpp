@@ -8,8 +8,11 @@ namespace {
 
 class DemoWidget : public LayeredWindow {
 public:
-    void OnPaint(D2DContext& ctx, int w, int h) override {
-        ctx.FillRoundedRect(D2D1::RectF(0, 0, (float)w, (float)h), 12.0f,
+    // w/h are DIPs (device-independent pixels), not physical pixels --
+    // this math stays proportionally correct across a DPI change without
+    // any changes here; LayeredWindow handles the DIP conversion.
+    void OnPaint(D2DContext& ctx, float w, float h) override {
+        ctx.FillRoundedRect(D2D1::RectF(0, 0, w, h), 12.0f,
                              D2D1::ColorF(0.10f, 0.10f, 0.12f, 0.85f));
         auto textFormat = ctx.CreateTextFormat(L"Segoe UI", 14.0f);
         const wchar_t* label = IsClickThrough() ? L"Argos (click-through ON)"
@@ -25,6 +28,15 @@ public:
             SetClickThrough(!IsClickThrough());
             Render();
         }
+    }
+
+    // The library never posts a quit message on WM_DESTROY (a widget
+    // closing shouldn't quit an app hosting several), but this demo is a
+    // single-window process -- without this, closing the window (Alt+F4,
+    // taskbar close) leaves GetMessageW blocked forever with no window
+    // left, and the process stays alive invisibly.
+    void OnDestroy() override {
+        PostQuitMessage(0);
     }
 };
 

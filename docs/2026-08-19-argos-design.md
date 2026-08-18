@@ -87,13 +87,17 @@ Built and proven first, before anything else depends on it.
   Direct2D render target and repositioning the window into the suggested
   rect Windows provides in `lParam`.
 
-**Hardware-verification assumption to flag:** DPI/multi-monitor logic is
-reasoned through and exercised with Windows' simulated-DPI debugging (and,
-where possible, the manifest/DPI-change code paths), but this machine cannot
-physically verify behavior across two monitors running at different scale
-factors. Please sanity-check widget positioning/crispness when dragging a
-widget between monitors of different DPI once you're on real multi-monitor
-hardware.
+**Hardware-verification note:** this dev machine has two physical monitors
+at different DPI (96 and 192, i.e. 100%/200% scale), so `WM_DPICHANGED`
+fires for real when a widget is moved between them via `PlaceOnMonitor` --
+this was exercised directly, not just reasoned through, and it's how a real
+DPI-rescale bug was found and verified fixed (the render target wasn't
+being told the new DPI, so drawing didn't rescale with the window). Widget
+crispness and proportional rendering across a DPI change were confirmed on
+this hardware via before/after screenshots. What's still unverified on
+real hardware: behavior with more than two monitors, and scale factors
+other than 100%/200% (e.g. 125%, 150%, 175%) -- neither combination exists
+on this dev setup.
 
 ## 6. Component 2 — Skin format
 
@@ -180,7 +184,10 @@ UI, matching the rendering stack decision):
 
 ## 12. Assumptions to verify once on real hardware
 
-1. Widget crispness/position when dragged between monitors at different DPI
-   scale factors (§5).
+1. Widget crispness/proportional rendering when moved between DPI-different
+   monitors -- verified on this dev machine's two monitors (96/192 DPI,
+   i.e. 100%/200% scale) (§5). Still open: more than two monitors, and
+   intermediate scale factors (125%, 150%, 175%) not present on this
+   dev setup.
 2. Actual on-screen "Windows protected your PC" SmartScreen flow, since it
    can't be triggered/observed from this dev environment (§10).
