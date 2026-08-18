@@ -29,7 +29,6 @@ void D2DContext::ReleaseDib() {
 
 bool D2DContext::Resize(int widthPx, int heightPx) {
     if (widthPx <= 0 || heightPx <= 0) {
-        m_widthPx = m_heightPx = 0;
         return false;
     }
     if (widthPx == m_widthPx && heightPx == m_heightPx && m_dcRenderTarget) {
