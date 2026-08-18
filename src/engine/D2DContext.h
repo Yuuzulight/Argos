@@ -8,11 +8,14 @@ namespace argos {
 
 using Microsoft::WRL::ComPtr;
 
-// Owns the process-wide Direct2D/DirectWrite factories, and one window's
-// DC render target + backing 32bpp DIB section used to composite through
-// UpdateLayeredWindow (the documented interop path for per-pixel-alpha
-// layered windows: draw with Direct2D onto a GDI-compatible DC, then hand
-// that DC to UpdateLayeredWindow).
+// Owns this window's Direct2D factory and rendering resources, and a
+// reference to the process-shared DirectWrite factory -- D2D1CreateFactory
+// creates a fresh factory per D2DContext instance (one per LayeredWindow),
+// while DWriteCreateFactory(..._SHARED...) really is one process-wide
+// instance. Also owns one window's DC render target + backing 32bpp DIB
+// section used to composite through UpdateLayeredWindow (the documented
+// interop path for per-pixel-alpha layered windows: draw with Direct2D
+// onto a GDI-compatible DC, then hand that DC to UpdateLayeredWindow).
 class D2DContext {
 public:
     D2DContext();
@@ -22,8 +25,18 @@ public:
     D2DContext& operator=(const D2DContext&) = delete;
 
     // Creates/resizes the backing DIB + DC render target for the given
-    // pixel size. Safe to call again (e.g. on a DPI change).
-    bool Resize(int widthPx, int heightPx);
+    // pixel size, and sets the render target's DPI so Direct2D's
+    // DIP-to-pixel scale matches the window's actual DPI. Safe to call
+    // again (e.g. on a DPI change). Returns false, and leaves the context
+    // not-ready (see IsReady()), on any failure.
+    bool Resize(int widthPx, int heightPx, UINT dpi);
+
+    // True only if the most recent Resize() call fully succeeded. Starts
+    // false, and goes false again if a later Resize() call fails -- even
+    // though m_dcRenderTarget may still be a non-null pointer left over
+    // from an earlier successful call, since a failed Resize() can have
+    // already torn down the backing DIB that pointer was bound to.
+    bool IsReady() const { return m_ready; }
 
     void BeginDraw();
     // Ends the Direct2D draw and composites the frame onto hwnd at screen
@@ -48,6 +61,8 @@ private:
     void* m_dibPixels = nullptr;
     int m_widthPx = 0;
     int m_heightPx = 0;
+    UINT m_dpi = 96;
+    bool m_ready = false;
 
     void ReleaseDib();
 };
