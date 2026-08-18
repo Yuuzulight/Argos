@@ -20,3 +20,12 @@ add_executable(argos_engine_demo WIN32
     src/demo/main.cpp
 )
 target_link_libraries(argos_engine_demo PRIVATE argos_engine)
+
+if(MSVC)
+  # /MANIFEST:EMBED is incompatible with /INCREMENTAL (on by default for Debug
+  # builds); without /INCREMENTAL:NO, CMake's link wrapper still generates a
+  # second manifest via mt.exe and the two collide (LNK1123 duplicate
+  # resource). Forcing /INCREMENTAL:NO here makes the embed path the only one.
+  set_target_properties(argos_engine_demo PROPERTIES
+      LINK_FLAGS "/MANIFEST:EMBED /MANIFESTINPUT:\"${CMAKE_SOURCE_DIR}/app.manifest\" /INCREMENTAL:NO")
+endif()

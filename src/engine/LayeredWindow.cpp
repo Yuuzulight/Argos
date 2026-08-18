@@ -128,6 +128,21 @@ LRESULT LayeredWindow::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     case WM_CAPTURECHANGED:
         m_dragging = false;
         return 0;
+    case WM_DPICHANGED: {
+        m_dpi = HIWORD(wParam);
+        auto* suggested = reinterpret_cast<RECT*>(lParam);
+        SetWindowPos(hwnd, nullptr, suggested->left, suggested->top,
+                     suggested->right - suggested->left, suggested->bottom - suggested->top,
+                     SWP_NOZORDER | SWP_NOACTIVATE);
+        m_screenX = suggested->left;
+        m_screenY = suggested->top;
+        m_widthPx = suggested->right - suggested->left;
+        m_heightPx = suggested->bottom - suggested->top;
+        m_context.Resize(m_widthPx, m_heightPx);
+        OnDpiChanged(m_dpi);
+        Render();
+        return 0;
+    }
     case WM_KEYDOWN:
         OnKeyDown(wParam);
         return 0;
