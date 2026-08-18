@@ -29,6 +29,7 @@ void D2DContext::ReleaseDib() {
 
 bool D2DContext::Resize(int widthPx, int heightPx) {
     if (widthPx <= 0 || heightPx <= 0) {
+        m_widthPx = m_heightPx = 0;
         return false;
     }
     if (widthPx == m_widthPx && heightPx == m_heightPx && m_dcRenderTarget) {
@@ -50,6 +51,7 @@ bool D2DContext::Resize(int widthPx, int heightPx) {
     m_dib = CreateDIBSection(screenDC, &bmi, DIB_RGB_COLORS, &m_dibPixels, nullptr, 0);
     ReleaseDC(nullptr, screenDC);
     if (!m_memDC || !m_dib) {
+        m_widthPx = m_heightPx = 0;
         return false;
     }
     m_oldBitmap = static_cast<HBITMAP>(SelectObject(m_memDC, m_dib));
@@ -59,12 +61,14 @@ bool D2DContext::Resize(int widthPx, int heightPx) {
             D2D1_RENDER_TARGET_TYPE_DEFAULT,
             D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED));
         if (FAILED(m_d2dFactory->CreateDCRenderTarget(&props, m_dcRenderTarget.GetAddressOf()))) {
+            m_widthPx = m_heightPx = 0;
             return false;
         }
     }
 
     RECT bindRect{ 0, 0, widthPx, heightPx };
     if (FAILED(m_dcRenderTarget->BindDC(m_memDC, &bindRect))) {
+        m_widthPx = m_heightPx = 0;
         return false;
     }
 
@@ -74,11 +78,17 @@ bool D2DContext::Resize(int widthPx, int heightPx) {
 }
 
 void D2DContext::BeginDraw() {
+    if (!m_dcRenderTarget) {
+        return;
+    }
     m_dcRenderTarget->BeginDraw();
     m_dcRenderTarget->Clear(D2D1::ColorF(0, 0.0f));
 }
 
 void D2DContext::EndDrawAndPresent(HWND hwnd, int screenX, int screenY) {
+    if (!m_dcRenderTarget) {
+        return;
+    }
     if (FAILED(m_dcRenderTarget->EndDraw())) {
         return;
     }

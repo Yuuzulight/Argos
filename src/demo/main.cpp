@@ -28,7 +28,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow) {
                                  200, 200, width, height, nullptr, nullptr, hInstance, nullptr);
 
     D2DContext ctx;
-    ctx.Resize(width, height);
+    if (!ctx.Resize(width, height)) {
+        return 1;
+    }
     ShowWindow(hwnd, nCmdShow);
 
     ctx.BeginDraw();
