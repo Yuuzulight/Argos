@@ -114,15 +114,16 @@ private:
     double m_fraction = 0.0;
 };
 
-std::wstring ToWide(const std::string& s) {
+}
+
+std::wstring argos::ToWide(const std::string& s) {
     if (s.empty()) return L"";
     int len = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, nullptr, 0);
+    if (len <= 0) return L"";
     std::wstring w(len, L'\0');
     MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, w.data(), len);
     w.resize(len - 1); // drop the null terminator MultiByteToWideChar counted
     return w;
-}
-
 }
 
 std::unique_ptr<Measure> argos::CreateMeasure(const std::string& className, const IniSection& config,
