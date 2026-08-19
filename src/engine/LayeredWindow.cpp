@@ -4,6 +4,7 @@ using namespace argos;
 
 namespace {
 const wchar_t* kWindowClassName = L"ArgosLayeredWindowClass";
+constexpr UINT_PTR kUpdateTimerId = 1;
 
 void RegisterClassOnce() {
     static bool registered = false;
@@ -111,6 +112,13 @@ void LayeredWindow::PlaceOnMonitor(const std::vector<MonitorInfo>& monitors, int
     SetPosition(p.x, p.y);
 }
 
+void LayeredWindow::SetUpdateTimer(UINT intervalMs) {
+    KillTimer(m_hwnd, kUpdateTimerId);
+    if (intervalMs > 0) {
+        SetTimer(m_hwnd, kUpdateTimerId, intervalMs, nullptr);
+    }
+}
+
 LRESULT CALLBACK LayeredWindow::WndProcStatic(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     LayeredWindow* self = nullptr;
     if (msg == WM_NCCREATE) {
@@ -177,6 +185,9 @@ LRESULT LayeredWindow::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
         }
         return 0;
     }
+    case WM_TIMER:
+        OnTimer();
+        return 0;
     case WM_KEYDOWN:
         OnKeyDown(wParam);
         return 0;

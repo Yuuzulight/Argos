@@ -48,3 +48,12 @@ add_library(argos_skin STATIC
 )
 target_include_directories(argos_skin PUBLIC src)
 target_link_libraries(argos_skin PUBLIC argos_engine)
+
+add_executable(argos_skin_demo WIN32
+    src/demo/skin_demo.cpp
+)
+target_link_libraries(argos_skin_demo PRIVATE argos_skin)
+if(MSVC)
+  set_target_properties(argos_skin_demo PROPERTIES
+      LINK_FLAGS "/MANIFEST:EMBED /MANIFESTINPUT:\"${CMAKE_SOURCE_DIR}/app.manifest\" /INCREMENTAL:NO")
+endif()
