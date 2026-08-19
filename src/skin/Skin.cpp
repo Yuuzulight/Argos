@@ -61,7 +61,20 @@ SkinLoadResult argos::LoadSkin(const std::wstring& iniPath, D2DContext& ctx) {
     skin->widget.x = ReadInt(*widgetSection, "X", 40);
     skin->widget.y = ReadInt(*widgetSection, "Y", 40);
     skin->widget.updateIntervalMs = ReadInt(*widgetSection, "UpdateInterval", 1000);
+    if (skin->widget.updateIntervalMs <= 0) {
+        skin->widget.updateIntervalMs = 1000;
+    }
     skin->widget.clickThrough = ReadBool(*widgetSection, "ClickThrough", false);
+
+    // Reject any non-[Widget] section that declares neither a measure nor a
+    // meter -- e.g. a typo'd key name (Metter= instead of Meter=) would
+    // otherwise silently produce a missing meter with no diagnostic at all.
+    for (const IniSection& section : parsed.sections) {
+        if (section.name == "Widget") continue;
+        if (section.Find("Measure") || section.Find("Meter")) continue;
+        result.error = "[" + section.name + "]: section has neither Measure= nor Meter=";
+        return result;
+    }
 
     // Pass 1: every section with a Measure= key becomes a Measure, indexed
     // by section name so meters can bind to it by that name in pass 2.
