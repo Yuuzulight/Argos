@@ -11,9 +11,11 @@ standard Win32/Direct2D APIs.
 
 Under active development. The rendering/window engine (layered,
 draggable, click-through-capable, per-monitor-DPI-aware windows drawn
-with Direct2D/DirectWrite) is built; the skin format, bundled skins,
-manager UI, persistence, and installer are still to come. See
-`docs/2026-08-19-argos-design.md` for the full design.
+with Direct2D/DirectWrite) and the skin format (INI-style config parser,
+the four v1 measures, the two v1 meters, and a skin loader) are built; the
+bundled skins, manager UI, persistence, and installer are still to come.
+See `docs/2026-08-19-argos-design.md` for the full design and
+`docs/SKIN_FORMAT.md` for the skin config format.
 
 ## Building
 
@@ -38,3 +40,9 @@ debug build.
 This produces `build\argos_engine_demo.exe`, a proving executable for the
 rendering engine. Close it like any normal window (Alt+F4, or its
 taskbar entry) -- it exits cleanly.
+
+This also produces `build\argos_skin_demo.exe`, which loads and renders
+`test_skins\demo\skin.ini` (run it from the repo root so that relative
+path resolves, or pass a skin path as its one command-line argument), and
+`build\argos_ini_parser_test.exe`, an assert-based check of the INI
+parser.
