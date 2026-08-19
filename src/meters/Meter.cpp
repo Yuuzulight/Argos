@@ -75,12 +75,16 @@ std::unique_ptr<Meter> argos::CreateMeter(const std::string& className, const In
     if (className == "Text") {
         const std::string* fontName = config.Find("Font");
         std::string font = fontName ? *fontName : "Segoe UI";
-        std::wstring wfont(font.begin(), font.end());
+        std::wstring wfont = ToWide(font);
         const std::string* sizeStr = config.Find("Size");
         float size = sizeStr ? static_cast<float>(std::atof(sizeStr->c_str())) : 14.0f;
         D2D1_COLOR_F color = ReadColor(config, "Color", D2D1::ColorF(D2D1::ColorF::White));
 
         auto format = ctx.CreateTextFormat(wfont.c_str(), size);
+        if (!format) {
+            outError = "failed to create text format for font \"" + font + "\"";
+            return nullptr;
+        }
         return std::make_unique<TextMeter>(measure, bounds, std::move(format), color);
     }
     if (className == "Bar") {
