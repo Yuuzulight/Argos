@@ -46,6 +46,20 @@ int main() {
         assert(result.error->line == 3);
     }
 
+    // Error: empty section name.
+    {
+        auto result = ParseIni("[]\n");
+        assert(!result.Ok());
+        assert(result.error->line == 1);
+    }
+
+    // Error: empty key.
+    {
+        auto result = ParseIni("[Widget]\n=value\n");
+        assert(!result.Ok());
+        assert(result.error->line == 2);
+    }
+
     printf("IniParser: all checks passed\n");
     return 0;
 }
