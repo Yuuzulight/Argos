@@ -43,7 +43,7 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR cmdLine, int nCmdShow) {
     std::wstring path = (cmdLine && cmdLine[0] != L'\0') ? cmdLine : L"test_skins\\demo\\skin.ini";
     SkinLoadResult loaded = LoadSkin(path, widget.Context());
     if (!loaded.skin) {
-        MessageBoxW(nullptr, std::wstring(loaded.error.begin(), loaded.error.end()).c_str(),
+        MessageBoxW(nullptr, ToWide(loaded.error).c_str(),
                     L"Argos Skin Demo — failed to load skin", MB_ICONERROR);
         return 1;
     }

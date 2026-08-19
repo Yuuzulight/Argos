@@ -29,4 +29,8 @@ public:
 std::unique_ptr<Measure> CreateMeasure(const std::string& className, const IniSection& config,
                                         std::string& outError);
 
+// Converts a UTF-8 string to UTF-16 via MultiByteToWideChar(CP_UTF8, ...).
+// Returns an empty string both for empty input and if the conversion fails.
+std::wstring ToWide(const std::string& s);
+
 }
