@@ -3,6 +3,11 @@
 A skin is a folder containing one `.ini`-style config file (plain text,
 `key=value`, no scripting) plus any assets it uses. This document is the
 whole format -- if you can author an `.ini` file, you can author a skin.
+The config file itself has no mandated filename -- the bundled fixtures use
+`skin.ini` by convention, but `LoadSkin` accepts any path.
+
+Section names and keys are case-sensitive: `x=40` does nothing (it must be
+`X=40`), and `[widget]` is not the same section as `[Widget]`.
 
 ## `[Widget]` (required, exactly one)
 
@@ -33,6 +38,10 @@ Measure=Clock
 | `MemoryUsage` | none | `NN%` physical memory in use | `0.0`-`1.0` |
 | `DiskUsage` | `Drive` (single letter, default `C`) | `NN%` of that drive's capacity in use | `0.0`-`1.0` |
 
+`CPUUsage` is a delta measure: it has no prior sample on the very first
+`Update()` call after a skin loads, so it reads `0%` for that first
+`UpdateInterval` tick before settling into real values.
+
 ## Meters
 
 A meter is a drawable element bound to one measure by name. Every meter
@@ -54,7 +63,7 @@ Color=FFFFFFFF
 
 | Class | Extra keys | Renders |
 |---|---|---|
-| `Text` | `Font` (default `Segoe UI`), `Size` (points, default `14`), `Color` (`AARRGGBB` hex, default `FFFFFFFF`) | The bound measure's `ValueText()` |
+| `Text` | `Font` (default `Segoe UI`), `Size` (DIPs, device-independent pixels, default `14`), `Color` (`AARRGGBB` hex, default `FFFFFFFF`) | The bound measure's `ValueText()` |
 | `Bar` | `FillColor`, `TrackColor` (`AARRGGBB` hex, default a light blue fill / faint white track) | A filled bar sized to the bound measure's `ValueFraction()` |
 
 Colors are 8 hex digits: **A**lpha, **R**ed, **G**reen, **B**lue, each
