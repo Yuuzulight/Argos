@@ -113,6 +113,12 @@ void LayeredWindow::PlaceOnMonitor(const std::vector<MonitorInfo>& monitors, int
 }
 
 void LayeredWindow::SetUpdateTimer(UINT intervalMs) {
+    if (!m_hwnd) {
+        // No window yet (called before Create()) -- SetTimer/KillTimer with
+        // a null HWND would create/kill a *thread* timer instead, a silent
+        // behavioral surprise. Nothing to do until Create() gives us a HWND.
+        return;
+    }
     KillTimer(m_hwnd, kUpdateTimerId);
     if (intervalMs > 0) {
         SetTimer(m_hwnd, kUpdateTimerId, intervalMs, nullptr);
@@ -186,7 +192,7 @@ LRESULT LayeredWindow::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
         return 0;
     }
     case WM_TIMER:
-        OnTimer();
+        if (wParam == kUpdateTimerId) OnTimer();
         return 0;
     case WM_KEYDOWN:
         OnKeyDown(wParam);
