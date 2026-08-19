@@ -39,3 +39,12 @@ add_executable(argos_ini_parser_test
     src/skin/IniParserTest.cpp
 )
 target_include_directories(argos_ini_parser_test PRIVATE src)
+
+add_library(argos_skin STATIC
+    src/skin/IniParser.cpp
+    src/skin/Skin.cpp
+    src/measures/Measure.cpp
+    src/meters/Meter.cpp
+)
+target_include_directories(argos_skin PUBLIC src)
+target_link_libraries(argos_skin PUBLIC argos_engine)
