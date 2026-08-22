@@ -31,6 +31,14 @@ public:
     // not-ready (see IsReady()), on any failure.
     bool Resize(int widthPx, int heightPx, UINT dpi);
 
+    // Creates (on first call) or resizes (on later calls) an
+    // ID2D1HwndRenderTarget bound directly to hwnd -- the standard
+    // non-layered Direct2D presentation path (WM_PAINT-driven
+    // BeginDraw/EndDraw), for normal application windows like the manager
+    // UI, as opposed to Resize()'s DC/DIB path used by layered widgets.
+    // A D2DContext should be used in one mode for its whole lifetime.
+    bool CreateForHwnd(HWND hwnd, int widthPx, int heightPx, UINT dpi);
+
     // True only if the most recent Resize() call fully succeeded. Starts
     // false, and goes false again if a later Resize() call fails -- even
     // though m_dcRenderTarget may still be a non-null pointer left over
@@ -38,10 +46,15 @@ public:
     // already torn down the backing DIB that pointer was bound to.
     bool IsReady() const { return m_ready; }
 
-    void BeginDraw();
+    void BeginDraw(const D2D1_COLOR_F& clearColor = D2D1::ColorF(0, 0.0f));
     // Ends the Direct2D draw and composites the frame onto hwnd at screen
     // position (screenX, screenY) with full per-pixel alpha.
     void EndDrawAndPresent(HWND hwnd, int screenX, int screenY);
+    // Ends the draw for HWND-render-target mode. Unlike
+    // EndDrawAndPresent() (the DC/layered path's manual blit),
+    // ID2D1HwndRenderTarget presents to its window automatically on
+    // EndDraw -- no hwnd/position arguments needed.
+    void EndDraw();
 
     void FillRoundedRect(const D2D1_RECT_F& rect, float radius, const D2D1_COLOR_F& color);
     void FillBar(const D2D1_RECT_F& bounds, float fraction, const D2D1_COLOR_F& fillColor,
@@ -54,6 +67,7 @@ private:
     ComPtr<ID2D1Factory> m_d2dFactory;
     ComPtr<IDWriteFactory> m_dwriteFactory;
     ComPtr<ID2D1DCRenderTarget> m_dcRenderTarget;
+    ComPtr<ID2D1HwndRenderTarget> m_hwndRenderTarget;
 
     HDC m_memDC = nullptr;
     HBITMAP m_dib = nullptr;
@@ -63,6 +77,8 @@ private:
     int m_heightPx = 0;
     UINT m_dpi = 96;
     bool m_ready = false;
+
+    ID2D1RenderTarget* Target() const;
 
     void ReleaseDib();
 };

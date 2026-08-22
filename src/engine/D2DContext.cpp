@@ -99,12 +99,17 @@ bool D2DContext::Resize(int widthPx, int heightPx, UINT dpi) {
     return true;
 }
 
-void D2DContext::BeginDraw() {
+ID2D1RenderTarget* D2DContext::Target() const {
+    if (m_hwndRenderTarget) return m_hwndRenderTarget.Get();
+    return m_dcRenderTarget.Get();
+}
+
+void D2DContext::BeginDraw(const D2D1_COLOR_F& clearColor) {
     if (!IsReady()) {
         return;
     }
-    m_dcRenderTarget->BeginDraw();
-    m_dcRenderTarget->Clear(D2D1::ColorF(0, 0.0f));
+    Target()->BeginDraw();
+    Target()->Clear(clearColor);
 }
 
 void D2DContext::EndDrawAndPresent(HWND hwnd, int screenX, int screenY) {
@@ -125,11 +130,53 @@ void D2DContext::EndDrawAndPresent(HWND hwnd, int screenX, int screenY) {
     ReleaseDC(nullptr, screenDC);
 }
 
+bool D2DContext::CreateForHwnd(HWND hwnd, int widthPx, int heightPx, UINT dpi) {
+    m_ready = false;
+    if (!m_d2dFactory || !m_dwriteFactory) {
+        return false;
+    }
+    if (widthPx <= 0 || heightPx <= 0) {
+        return false;
+    }
+
+    if (!m_hwndRenderTarget) {
+        D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties();
+        D2D1_HWND_RENDER_TARGET_PROPERTIES hwndProps = D2D1::HwndRenderTargetProperties(
+            hwnd, D2D1::SizeU(static_cast<UINT32>(widthPx), static_cast<UINT32>(heightPx)));
+        if (FAILED(m_d2dFactory->CreateHwndRenderTarget(props, hwndProps, m_hwndRenderTarget.GetAddressOf()))) {
+            return false;
+        }
+    } else if (FAILED(m_hwndRenderTarget->Resize(
+                   D2D1::SizeU(static_cast<UINT32>(widthPx), static_cast<UINT32>(heightPx))))) {
+        return false;
+    }
+
+    m_hwndRenderTarget->SetDpi(static_cast<float>(dpi), static_cast<float>(dpi));
+    m_widthPx = widthPx;
+    m_heightPx = heightPx;
+    m_dpi = dpi;
+    m_ready = true;
+    return true;
+}
+
+void D2DContext::EndDraw() {
+    if (!IsReady() || !m_hwndRenderTarget) {
+        return;
+    }
+    // D2DERR_RECREATE_TARGET means the underlying device was lost (driver
+    // reset, etc.) -- the documented recovery is to drop the render target
+    // so the next CreateForHwnd() call rebuilds it from scratch.
+    if (m_hwndRenderTarget->EndDraw() == D2DERR_RECREATE_TARGET) {
+        m_hwndRenderTarget.Reset();
+        m_ready = false;
+    }
+}
+
 void D2DContext::FillRoundedRect(const D2D1_RECT_F& rect, float radius, const D2D1_COLOR_F& color) {
     ComPtr<ID2D1SolidColorBrush> brush;
-    m_dcRenderTarget->CreateSolidColorBrush(color, brush.GetAddressOf());
+    Target()->CreateSolidColorBrush(color, brush.GetAddressOf());
     D2D1_ROUNDED_RECT rr = D2D1::RoundedRect(rect, radius, radius);
-    m_dcRenderTarget->FillRoundedRectangle(rr, brush.Get());
+    Target()->FillRoundedRectangle(rr, brush.Get());
 }
 
 void D2DContext::FillBar(const D2D1_RECT_F& bounds, float fraction, const D2D1_COLOR_F& fillColor,
@@ -145,8 +192,8 @@ void D2DContext::FillBar(const D2D1_RECT_F& bounds, float fraction, const D2D1_C
 void D2DContext::DrawText(const D2D1_RECT_F& layoutRect, const wchar_t* text, IDWriteTextFormat* format,
                            const D2D1_COLOR_F& color) {
     ComPtr<ID2D1SolidColorBrush> brush;
-    m_dcRenderTarget->CreateSolidColorBrush(color, brush.GetAddressOf());
-    m_dcRenderTarget->DrawText(text, static_cast<UINT32>(wcslen(text)), format, layoutRect, brush.Get());
+    Target()->CreateSolidColorBrush(color, brush.GetAddressOf());
+    Target()->DrawText(text, static_cast<UINT32>(wcslen(text)), format, layoutRect, brush.Get());
 }
 
 ComPtr<IDWriteTextFormat> D2DContext::CreateTextFormat(const wchar_t* fontFamily, float sizePt) {
