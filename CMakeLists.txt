@@ -12,6 +12,7 @@ add_library(argos_engine STATIC
     src/engine/D2DContext.cpp
     src/engine/LayeredWindow.cpp
     src/engine/MonitorUtil.cpp
+    src/engine/D2DWindow.cpp
 )
 target_include_directories(argos_engine PUBLIC src)
 target_compile_definitions(argos_engine PUBLIC UNICODE _UNICODE _WIN32_WINNT=0x0A00 WINVER=0x0A00)
@@ -39,6 +40,12 @@ add_executable(argos_ini_parser_test
     src/skin/IniParserTest.cpp
 )
 target_include_directories(argos_ini_parser_test PRIVATE src)
+
+add_executable(argos_skin_registry_test
+    src/manager/SkinRegistry.cpp
+    src/manager/SkinRegistryTest.cpp
+)
+target_include_directories(argos_skin_registry_test PRIVATE src)
 
 add_library(argos_skin STATIC
     src/skin/IniParser.cpp
