@@ -1,7 +1,5 @@
 # Argos — Component 1: Rendering/Window Engine Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
-
 **Goal:** Build and prove the layered, transparent, always-on-top, draggable, click-through-capable, multi-monitor-and-DPI-aware Win32 window engine that every later Argos component (widgets and the manager UI) will be built on.
 
 **Architecture:** A small reusable static library (`argos_engine`) with three pieces — `D2DContext` (owns the Direct2D/DirectWrite factories and a per-window DC render target + backing DIB, and composites frames onto the desktop via `UpdateLayeredWindow`), `LayeredWindow` (owns the HWND, drag-to-reposition, click-through toggle, and DPI-change handling, drawing through a `D2DContext`), and `MonitorUtil` (enumerates monitors and converts monitor-relative positions to virtual-desktop coordinates). A throwaway-but-kept `argos_engine_demo` executable exercises all of it so each task is proven by actually running.
