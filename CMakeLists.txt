@@ -30,3 +30,30 @@ if(MSVC)
   set_target_properties(argos_engine_demo PROPERTIES
       LINK_FLAGS "/MANIFEST:EMBED /MANIFESTINPUT:\"${CMAKE_SOURCE_DIR}/app.manifest\" /INCREMENTAL:NO")
 endif()
+
+# Pure logic, no Windows/D2D dependency -- compiled as its own tiny target
+# (not linked against argos_engine or argos_skin) so it builds fast and
+# stays a true unit test of the parser alone.
+add_executable(argos_ini_parser_test
+    src/skin/IniParser.cpp
+    src/skin/IniParserTest.cpp
+)
+target_include_directories(argos_ini_parser_test PRIVATE src)
+
+add_library(argos_skin STATIC
+    src/skin/IniParser.cpp
+    src/skin/Skin.cpp
+    src/measures/Measure.cpp
+    src/meters/Meter.cpp
+)
+target_include_directories(argos_skin PUBLIC src)
+target_link_libraries(argos_skin PUBLIC argos_engine)
+
+add_executable(argos_skin_demo WIN32
+    src/demo/skin_demo.cpp
+)
+target_link_libraries(argos_skin_demo PRIVATE argos_skin)
+if(MSVC)
+  set_target_properties(argos_skin_demo PROPERTIES
+      LINK_FLAGS "/MANIFEST:EMBED /MANIFESTINPUT:\"${CMAKE_SOURCE_DIR}/app.manifest\" /INCREMENTAL:NO")
+endif()

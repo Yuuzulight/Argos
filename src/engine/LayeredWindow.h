@@ -34,6 +34,9 @@ public:
 
     void SetPosition(int screenX, int screenY);
     void PlaceOnMonitor(const std::vector<MonitorInfo>& monitors, int monitorIndex, int relX, int relY);
+    // Starts (or restarts, if already running) a periodic WM_TIMER that
+    // calls OnTimer() every intervalMs. Pass 0 to stop it.
+    void SetUpdateTimer(UINT intervalMs);
     int ScreenX() const { return m_screenX; }
     int ScreenY() const { return m_screenY; }
     UINT Dpi() const { return m_dpi; }
@@ -45,6 +48,7 @@ public:
     // needing to know the window's actual pixel size.
     virtual void OnPaint(D2DContext& ctx, float dipWidth, float dipHeight) {}
     virtual void OnDpiChanged(UINT newDpi) {}
+    virtual void OnTimer() {}
     virtual void OnKeyDown(WPARAM vk) {}
     // Called from WM_DESTROY. The library itself never posts a quit
     // message here (one widget closing shouldn't quit an app hosting
