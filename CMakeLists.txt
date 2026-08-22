@@ -64,3 +64,14 @@ if(MSVC)
   set_target_properties(argos_skin_demo PROPERTIES
       LINK_FLAGS "/MANIFEST:EMBED /MANIFESTINPUT:\"${CMAKE_SOURCE_DIR}/app.manifest\" /INCREMENTAL:NO")
 endif()
+
+add_executable(argos_manager WIN32
+    src/manager/SkinRegistry.cpp
+    src/manager/ManagerWindow.cpp
+    src/manager/main.cpp
+)
+target_link_libraries(argos_manager PRIVATE argos_skin)
+if(MSVC)
+  set_target_properties(argos_manager PROPERTIES
+      LINK_FLAGS "/MANIFEST:EMBED /MANIFESTINPUT:\"${CMAKE_SOURCE_DIR}/app.manifest\" /INCREMENTAL:NO")
+endif()
