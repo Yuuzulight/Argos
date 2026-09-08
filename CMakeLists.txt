@@ -70,7 +70,7 @@ add_executable(argos_manager WIN32
     src/manager/ManagerWindow.cpp
     src/manager/main.cpp
 )
-target_link_libraries(argos_manager PRIVATE argos_skin)
+target_link_libraries(argos_manager PRIVATE argos_skin shell32 ole32)
 if(MSVC)
   set_target_properties(argos_manager PROPERTIES
       LINK_FLAGS "/MANIFEST:EMBED /MANIFESTINPUT:\"${CMAKE_SOURCE_DIR}/app.manifest\" /INCREMENTAL:NO")
