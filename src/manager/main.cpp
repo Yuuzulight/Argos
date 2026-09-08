@@ -61,6 +61,7 @@ void SpawnWidget(SkinEntry& entry) {
     int monitorIndex = loaded.skin->widget.monitorIndex;
     int x = loaded.skin->widget.x;
     int y = loaded.skin->widget.y;
+    widget->SetClickThrough(loaded.skin->widget.clickThrough);
     widget->SetSkin(std::move(loaded.skin));
     widget->PlaceOnMonitor(g_monitors, monitorIndex, x, y);
     widget->Render();
