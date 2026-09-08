@@ -11,9 +11,11 @@ standard Win32/Direct2D APIs.
 
 Under active development. The rendering/window engine, the skin format
 (INI-style config parser, the four v1 measures, the two v1 meters, and a
-skin loader), and the four bundled v1 skins (Clock, CPU, RAM, Disk, under
-`skins/`) are built; the manager UI, persistence, and installer are still
-to come. See `docs/2026-08-19-argos-design.md` for the full design and
+skin loader), the four bundled v1 skins (Clock, CPU, RAM, Disk, under
+`skins/`), and the manager application (lists installed skins, enables/
+disables them, and refreshes/reloads on change — `argos_manager.exe`) are
+built; persistence/auto-start and the installer are still to come. See
+`docs/2026-08-19-argos-design.md` for the full design and
 `docs/SKIN_FORMAT.md` for the skin config format.
 
 ## Building
