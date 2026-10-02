@@ -11,9 +11,11 @@ standard Win32/Direct2D APIs.
 
 Under active development. The rendering/window engine, the skin format
 (INI-style config parser, the four v1 measures, the two v1 meters, and a
-skin loader), and the four bundled v1 skins (Clock, CPU, RAM, Disk, under
-`skins/`) are built; the manager UI, persistence, and installer are still
-to come. See `docs/2026-08-19-argos-design.md` for the full design and
+skin loader), the four bundled v1 skins (Clock, CPU, RAM, Disk, under
+`skins/`), and the manager application (lists installed skins, enables/
+disables them, and refreshes/reloads on change — `argos_manager.exe`) are
+built; persistence/auto-start and the installer are still to come. See
+`docs/2026-08-19-argos-design.md` for the full design and
 `docs/SKIN_FORMAT.md` for the skin config format.
 
 ## Building
@@ -45,3 +47,11 @@ This also produces `build\argos_skin_demo.exe`, which loads and renders
 path resolves, or pass a skin path as its one command-line argument), and
 `build\argos_ini_parser_test.exe`, an assert-based check of the INI
 parser.
+
+`build\argos_manager.exe` is the manager application. By default it
+scans `%LOCALAPPDATA%\Argos\Skins\` (empty until the installer exists, or
+you copy skin folders there yourself) -- pass a directory as its one
+command-line argument to point it elsewhere instead, e.g. the repo's own
+bundled skins: `build\argos_manager.exe skins`.
+`build\argos_skin_registry_test.exe` is an assert-based check of the
+manager's skin-directory scanner.
